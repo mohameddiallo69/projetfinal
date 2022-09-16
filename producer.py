@@ -15,7 +15,7 @@ topic_name = 'ARMD_ProjectFinal'
 
 class TweetPrinterV2(tweepy.StreamingClient):
     def on_tweet(self, tweet):
-        print(f"{tweet.id} {tweet.created_at}: {tweet.text}")
+        print(f"{tweet.id} {tweet.created_at} {tweet.text} {tweet.author_id}")
         data = tweet.data
         data["id"] = (tweet.id)
         data["created_at"] = str(tweet.created_at)
@@ -28,5 +28,5 @@ printer = TweetPrinterV2("AAAAAAAAAAAAAAAAAAAAALxOgwEAAAAAo8zDrN%2BFybjVGe1yBCNk
 rule = StreamRule(value="ukraine lang:en")
 printer.add_rules(rule)
 
-printer.filter(tweet_fields="created_at")
+printer.filter(tweet_fields="created_at", expansions = ['author_id'])
 
