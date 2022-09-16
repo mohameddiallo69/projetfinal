@@ -10,7 +10,7 @@ pip install pymongo[srv]
 from pyspark.sql import functions as F
 from pyspark.sql.functions import explode
 from pyspark.sql.functions import split
-from pyspark.sql.types import StringType, StructType, StructField, FloatType
+from pyspark.sql.types import StringType, StructType, StructField, FloatType, IntegerType
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, udf
 from pyspark.ml.feature import RegexTokenizer
@@ -43,7 +43,9 @@ df = spark.readStream \
 
 # COMMAND ----------
 
-mySchema = StructType([StructField("text", StringType(), True)])
+mySchema = StructType([StructField("id", StringType(), True),
+                     StructField("created_at", StringType(), True),
+                     StructField("text", StringType(), True)])
     # Get only the "text" from the information we receive from Kafka. The text is the tweet produce by a user
 values = df.select(from_json(df.value.cast("string"), mySchema).alias("tweet"))
 
@@ -120,13 +122,6 @@ rawData.status
 # COMMAND ----------
 
 display(spark.sql("select * from rawData"))
-
-# COMMAND ----------
-
-def write_row_in_mongo(df, epoch_id):
-    mongoURL = "mongodb+srv://ProjectFinal_ARMD:PF.password@cluster0.5sajpgx.mongodb.net/ProjectFinal_ARMD.UkraineWarTweets"
-    df.write.format("mongo").mode("append").option("uri", mongoURL).save()
-    pass
 
 # COMMAND ----------
 
