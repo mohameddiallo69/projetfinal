@@ -1,0 +1,15 @@
+pymongo
+textblob
+textblob-fr
+pyspark
+kafka-python
+tweepy
+kafka-python
+DateTime
+pandas
+numpy 
+matplotlib
+plotly
+streamlit==1.9.2
+wordcloud
+streamlit-autorefresh
