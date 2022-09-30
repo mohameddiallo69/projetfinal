@@ -18,19 +18,21 @@ topic_name = 'ARMD_ProjectFinal'
 #Class qui permet de récupérer les tweets et de les envoyer après tranformation
 class TweetPrinterV2(tweepy.StreamingClient):
     def on_tweet(self, tweet):
-        print(f"{tweet.id} {tweet.created_at} {tweet.text} {tweet.author_id}")
-        data = tweet.data
-        data["id"] = (tweet.id)
-        data["created_at"] = str(tweet.created_at)
+        tweet_text = tweet.text
+        if (tweet_text.startswith("RT @")) == False:
+            print(f"{tweet.id} {tweet.created_at} {tweet.text} {tweet.author_id}")
+            data = tweet.data
+            data["id"] = (tweet.id)
+            data["created_at"] = str(tweet.created_at)
 
-        #Envoie des données sur le topic
-        producer.send(topic_name, data)
+            #Envoie des données sur le topic
+            producer.send(topic_name, data)
 
 #Connexion API
 printer = TweetPrinterV2("AAAAAAAAAAAAAAAAAAAAALxOgwEAAAAAo8zDrN%2BFybjVGe1yBCNkkbOCgdo%3DzA7NRr87pj4saKbJaYfJIyktLrfyBNBIHs7CFmlGTXjkX5A6F8")
 
 # add new rules
-rule = StreamRule(value="ukraine lang:en")
+rule = StreamRule(value="ukraine ukrainewar lang:en")
 printer.add_rules(rule)
 printer.filter(tweet_fields="created_at", expansions = ['author_id'])
 

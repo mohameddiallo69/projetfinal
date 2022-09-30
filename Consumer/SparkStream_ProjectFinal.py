@@ -7,8 +7,8 @@ from pyspark.sql.types import StringType, StructType, StructField, FloatType, In
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, udf
 import re
-from textblob import TextBlob
 import pymongo
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 #Spark session
 spark = SparkSession \
@@ -62,42 +62,33 @@ def cleanTweet(tweet: str) -> str:
 
     return tweet
 
-# COMMAND ----------
-
 #Nettoyage des tweets + ajout d'une colonne avec les tweets nettoyés
 df1 = values.select("tweet.*")
 clean_tweets = F.udf(cleanTweet, StringType())
 raw_tweets = df1.withColumn('processed_text', clean_tweets(col("text")))
 
-# COMMAND ----------
-
-#Fonction de subjectivité
-def getSubjectivity(tweet: str) -> float:
-    return TextBlob(tweet).sentiment.subjectivity
-
 
 #Fonction de polarité
 def getPolarity(tweet: str) -> float:
-    return TextBlob(tweet).sentiment.polarity
+    sid_obj = SentimentIntensityAnalyzer()
+    return sid_obj.polarity_scores(tweet)["compound"]
 
 #Fonction de sentiment
-def getSentiment(polarityValue: int) -> str:
-    if polarityValue < 0:
-        return 'Negative'
-    elif polarityValue == 0:
-        return 'Neutral'
-    else:
+def getSentiment(polarityValue: float) -> str:
+    if polarityValue >= 0.05 :
         return 'Positive'
+    elif polarityValue <= - 0.05 :
+        return 'Negative'
+    else:
+        return 'Neutral'
 
 # COMMAND ----------
 
 #Ajout des colonnes avec le résultats des fonctions de subjectivité, polarité, sentiment
-subjectivity = F.udf(getSubjectivity, FloatType())
 polarity = F.udf(getPolarity, FloatType())
 sentiment = F.udf(getSentiment, StringType())
 
-subjectivity_tweets = raw_tweets.withColumn('subjectivity', subjectivity(col("processed_text")))
-polarity_tweets = subjectivity_tweets.withColumn("polarity", polarity(col("processed_text")))
+polarity_tweets = raw_tweets.withColumn("polarity", polarity(col("processed_text")))
 sentiment_tweets = polarity_tweets.withColumn("sentiment", sentiment(col("polarity")))
 
 # COMMAND ----------

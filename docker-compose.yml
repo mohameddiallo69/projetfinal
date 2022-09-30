@@ -12,7 +12,8 @@ services:
       dockerfile: Consumer/DockerFile.Consumer
     depends_on:
       - spark-master
-      - spark-worker
+      - spark-worker-a
+      - spark-worker-b
   zookeeper:
     image: 'bitnami/zookeeper:latest'
     container_name: zookeeper
@@ -50,14 +51,20 @@ services:
     ports:
       - '8080:8080'
       - '7077:7077'
+    volumes:
+       - ./apps:/opt/spark-apps
+       - ./data:/opt/spark-data
     depends_on:
       - kafka
-  spark-worker:
+  spark-worker-a:
     build: 
       context: .
       dockerfile: DockerFile.Spark
-    container_name: "spark-worker"
-    hostname: spark-worker
+    container_name: "spark-worker-a"
+    hostname: spark-worker-a
+    volumes:
+       - ./apps:/opt/spark-apps
+       - ./data:/opt/spark-data
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
@@ -66,6 +73,29 @@ services:
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_WORKLOAD=worker
+      - SPARK_LOCAL_IP=spark-worker-a
+    depends_on:
+      - spark-master
+  spark-worker-b:
+    build: 
+      context: .
+      dockerfile: DockerFile.Spark
+    container_name: "spark-worker-b"
+    hostname: spark-worker-b
+    volumes:
+       - ./apps:/opt/spark-apps
+       - ./data:/opt/spark-data
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKLOAD=worker
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_IP=spark-worker-b
     depends_on:
       - spark-master
   mongo:

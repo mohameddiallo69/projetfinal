@@ -1,6 +1,4 @@
 pymongo
-textblob
-textblob-fr
 pyspark
 kafka-python
 tweepy
@@ -13,3 +11,5 @@ plotly
 streamlit==1.9.2
 wordcloud
 streamlit-autorefresh
+vaderSentiment
+altair
